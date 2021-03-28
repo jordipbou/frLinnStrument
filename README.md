@@ -1,2 +1,3 @@
 # frLinnStrument
-Library for working with LinnStrument thru frMIDI
+
+Library for working with LinnStrument thru frMIDI.
