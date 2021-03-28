@@ -7766,6 +7766,26 @@ const createToggle = x => y => color_off => color_on => msg_off => msg_on => lou
   };
   return state;
 };
+const createLambdaToggle = x => y => color_off => color_on => lambda_on => lambda_off => lout => state => {
+  lout(setColor(x, y, color_off));
+  state[x][y] = {
+    status: {
+      toggled: false
+    },
+    onNoteOn: (v, cell) => {
+      cell.toggled = !cell.toggled;
+
+      if (cell.toggled) {
+        lambda_on();
+        lout(setColor(x, y, color_on));
+      } else {
+        lambda_off();
+        lout(setColor(x, y, color_off));
+      }
+    }
+  };
+  return state;
+};
 const createCC14bit = x => y => color => ch => cc => lout => sout => state => {
   lout(setColor(x, y, color));
   state[x][y] = {
@@ -7793,4 +7813,4 @@ const createCC14bit = x => y => color => ch => cc => lout => sout => state => {
   return state;
 };
 
-export { AS_SETTINGS, BLUE, CYAN, GREEN, LIME, MAGENTA, OFF, ORANGE, PINK, RED, WHITE, YELLOW, clear, createCC14bit, createState, createToggle, listener, restore, setColor, version };
+export { AS_SETTINGS, BLUE, CYAN, GREEN, LIME, MAGENTA, OFF, ORANGE, PINK, RED, WHITE, YELLOW, clear, createCC14bit, createLambdaToggle, createState, createToggle, listener, restore, setColor, version };

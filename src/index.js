@@ -3,7 +3,7 @@ import * as R from 'ramda'
 import * as X from 'rxjs'
 import * as O from 'rxjs/operators'
 
-export const version = '1.0.0'
+export const version = '1.0.1'
 
 export const AS_SETTINGS = 0
 export const RED = 1
@@ -136,6 +136,28 @@ export const createToggle = (x) => (y) => (color_off) => (color_on) => (msg_off)
         lout (setColor (x, y, color_on))
       } else {
         sout (R.set (M.channel) (1) (msg_off))
+        lout (setColor (x, y, color_off))
+      }
+    }
+  }
+
+  return state
+}
+
+export const createLambdaToggle = (x) => (y) => (color_off) => (color_on) => (lambda_on) => (lambda_off) => (lout) => (state) => 
+{
+  lout (setColor (x, y, color_off))
+
+  state[x][y] = {
+    status: { toggled: false },
+    onNoteOn: (v, cell) => {
+      cell.toggled = !cell.toggled
+
+      if (cell.toggled) {
+        lambda_on ()
+        lout (setColor (x, y, color_on))
+      } else {
+        lambda_off ()
         lout (setColor (x, y, color_off))
       }
     }

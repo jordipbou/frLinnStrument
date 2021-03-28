@@ -1,6 +1,6 @@
 {
   "name": "frlinnstrument",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Extend LinnStrument functionality thru frMIDI",
   "main": "umd/frlinnstrument.js",
   "module": "es/frlinnstrument.js",
