@@ -4960,6 +4960,7 @@
   const on = (n = 64, v = 96, ch = 0, ts = 0) => msg([144 + ch, n, v], ts);
   const cc = (c = 1, v = 127, ch = 0, ts = 0) => msg([176 + ch, c, v], ts);
   const cc14bit = (c = 1, v = 8192, ch = 0, ts = 0) => from$1([cc(c, msb(v), ch, ts), cc(c + 32, lsb(v), ch, ts)]);
+  const nrpn = (n = 0, v = 8192, ch = 0, ts = 0) => from$1([cc(99, n >> 7, ch, ts), cc(98, n % 128, ch, ts), cc(6, v >> 7, ch, ts), cc(38, v % 128, ch, ts), cc(101, 127, ch, ts), cc(100, 127, ch, ts)]); // -------------- System common messages generation ----------------
 
   const getData = curry((n, msg) => msg.data[n]);
   const setData = curry((n, v, msg) => evolve({
@@ -6541,6 +6542,54 @@
   });
 
   /**
+   * Returns a curried equivalent of the provided function. The curried function
+   * has two unusual capabilities. First, its arguments needn't be provided one
+   * at a time. If `f` is a ternary function and `g` is `R.curry(f)`, the
+   * following are equivalent:
+   *
+   *   - `g(1)(2)(3)`
+   *   - `g(1)(2, 3)`
+   *   - `g(1, 2)(3)`
+   *   - `g(1, 2, 3)`
+   *
+   * Secondly, the special placeholder value [`R.__`](#__) may be used to specify
+   * "gaps", allowing partial application of any combination of arguments,
+   * regardless of their positions. If `g` is as above and `_` is [`R.__`](#__),
+   * the following are equivalent:
+   *
+   *   - `g(1, 2, 3)`
+   *   - `g(_, 2, 3)(1)`
+   *   - `g(_, _, 3)(1)(2)`
+   *   - `g(_, _, 3)(1, 2)`
+   *   - `g(_, 2)(1)(3)`
+   *   - `g(_, 2)(1, 3)`
+   *   - `g(_, 2)(_, 3)(1)`
+   *
+   * @func
+   * @memberOf R
+   * @since v0.1.0
+   * @category Function
+   * @sig (* -> a) -> (* -> a)
+   * @param {Function} fn The function to curry.
+   * @return {Function} A new, curried function.
+   * @see R.curryN, R.partial
+   * @example
+   *
+   *      const addFourNumbers = (a, b, c, d) => a + b + c + d;
+   *
+   *      const curriedAddFourNumbers = R.curry(addFourNumbers);
+   *      const f = curriedAddFourNumbers(1, 2);
+   *      const g = f(3);
+   *      g(4); //=> 10
+   */
+
+  var curry$1 =
+  /*#__PURE__*/
+  _curry1$1(function curry(fn) {
+    return curryN$1(fn.length, fn);
+  });
+
+  /**
    * `_makeFlat` is a helper function that returns a one-level or fully recursive
    * function based on the flag passed in.
    *
@@ -7693,7 +7742,7 @@
       return FilterSubscriber;
   }(Subscriber$1));
 
-  const version = '1.0.2';
+  const version = '1.0.3';
   const AS_SETTINGS = 0;
   const RED = 1;
   const YELLOW = 2;
@@ -7705,10 +7754,19 @@
   const WHITE = 8;
   const ORANGE = 9;
   const LIME = 10;
-  const PINK = 11;
+  const PINK = 11; // -------------------------------------  Setting color of cells
+  // It's not needed to set user firmware mode to change colors.
+
   const setColor = (x, y, c) => from$1([cc(20, x), cc(21, y), cc(22, c)]);
   const clear = (c = 7) => from(flatten$1(map$2(x => map$2(y => setColor(x, y, c))(range$1(0, 8)))(range$1(0, 17))));
-  const restore = () => clear(AS_SETTINGS); // Each cell of state expects an object with:
+  const restore = () => clear(AS_SETTINGS); // ------------------------------------------- User firmware mode
+
+  const userFirmwareMode = (enable = true) => nrpn(245, enable ? 1 : 0);
+  const rowSlide = curry$1((row, enable = true) => cc(9, enable ? 1 : 0, row));
+  const xData = curry$1((row, enable = true) => cc(10, enable ? 1 : 0, row));
+  const yData = curry$1((row, enable = true) => cc(11, enable ? 1 : 0, row));
+  const zData = curry$1((row, enable = true) => cc(12, enable ? 1 : 0, row));
+  const decimationRate = (rate = 12) => cc(13, rate); // Each cell of state expects an object with:
   // onNoteOn
   // onNoteOff
   // onPitchBend
@@ -7817,10 +7875,16 @@
   exports.createLambdaToggle = createLambdaToggle;
   exports.createState = createState;
   exports.createToggle = createToggle;
+  exports.decimationRate = decimationRate;
   exports.listener = listener;
   exports.restore = restore;
+  exports.rowSlide = rowSlide;
   exports.setColor = setColor;
+  exports.userFirmwareMode = userFirmwareMode;
   exports.version = version;
+  exports.xData = xData;
+  exports.yData = yData;
+  exports.zData = zData;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -3,7 +3,7 @@ import * as R from 'ramda'
 import * as X from 'rxjs'
 import * as O from 'rxjs/operators'
 
-export const version = '1.0.2'
+export const version = '1.0.3'
 
 export const AS_SETTINGS = 0
 export const RED = 1
@@ -17,6 +17,9 @@ export const WHITE = 8
 export const ORANGE = 9
 export const LIME = 10
 export const PINK = 11
+
+// -------------------------------------  Setting color of cells
+// It's not needed to set user firmware mode to change colors.
 
 export const setColor = (x, y, c) =>
   M.from ([
@@ -34,6 +37,26 @@ export const clear = (c = 7) =>
 
 export const restore = () =>
   clear (AS_SETTINGS)
+
+// ------------------------------------------- User firmware mode
+
+export const userFirmwareMode = (enable = true) =>
+	M.nrpn (245, enable ? 1 : 0)
+
+export const rowSlide = R.curry ((row, enable = true) => 
+	M.cc (9, enable ? 1 : 0, row))
+
+export const xData = R.curry ((row, enable = true) =>
+	M.cc (10, enable ? 1 : 0, row))
+
+export const yData = R.curry ((row, enable = true) =>
+	M.cc (11, enable ? 1 : 0, row))
+
+export const zData = R.curry ((row, enable = true) =>
+	M.cc (12, enable ? 1 : 0, row))
+
+export const decimationRate = (rate = 12) =>
+	M.cc (13, rate)
 
 // Each cell of state expects an object with:
 // onNoteOn
