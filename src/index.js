@@ -44,7 +44,9 @@ export const restore = () =>
 // active
 // channel
 export const createState = () =>
-  R.map ((x) => R.map ((y) => ({})) (R.range (0, 8))) (R.range (0, 17))
+  R.map 
+    ((x) => R.map ((y) => ({})) (R.range (0, 8))) 
+    (R.range (0, 17))
 
 export const listener = (state) => (input) => {
   input.pipe (
@@ -122,38 +124,16 @@ export const listener = (state) => (input) => {
   })
 }
 
-export const createToggle = (x) => (y) => (color_off) => (color_on) => (msg_off) => (msg_on) => (lout) => (sout) => (state) => 
-{
-  lout (setColor (x, y, color_off))
-
-  state[x][y] = {
-    status: { toggled: false },
-    onNoteOn: (v, cell) => {
-      cell.toggled = !cell.toggled
-
-      if (cell.toggled) {
-        sout (R.set (M.channel) (1) (msg_on))
-        lout (setColor (x, y, color_on))
-      } else {
-        sout (R.set (M.channel) (1) (msg_off))
-        lout (setColor (x, y, color_off))
-      }
-    }
-  }
-
-  return state
-}
-
 export const createLambdaToggle = (x) => (y) => (color_off) => (color_on) => (lambda_on) => (lambda_off) => (lout) => (state) => 
 {
   lout (setColor (x, y, color_off))
 
   state[x][y] = {
     status: { toggled: false },
-    onNoteOn: (v, cell) => {
-      cell.toggled = !cell.toggled
+    onNoteOn: (v, status) => {
+      status.toggled = !status.toggled
 
-      if (cell.toggled) {
+      if (status.toggled) {
         lambda_on ()
         lout (setColor (x, y, color_on))
       } else {
@@ -166,6 +146,15 @@ export const createLambdaToggle = (x) => (y) => (color_off) => (color_on) => (la
   return state
 }
 
+export const createToggle = (x) => (y) => (color_off) => (color_on) => (msg_off) => (msg_on) => (lout) => (sout) => (state) =>
+  createLambdaToggle 
+    (x) (y) 
+    (color_off) (color_on) 
+    (() => sout (R.set (M.channel) (1) (msg_on))) 
+    (() => sout (R.set (M.channel) (1) (msg_off))) 
+    (lout) 
+    (state)
+  
 export const createCC14bit = (x) => (y) => (color) => (ch) => (cc) => (lout) => (sout) => (state) => {
   lout (setColor (x, y, color))
 
