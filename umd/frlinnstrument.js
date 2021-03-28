@@ -7693,7 +7693,7 @@
       return FilterSubscriber;
   }(Subscriber$1));
 
-  const version = '1.0.0';
+  const version = '1.0.2';
   const AS_SETTINGS = 0;
   const RED = 1;
   const YELLOW = 2;
@@ -7752,36 +7752,16 @@
       });
     });
   };
-  const createToggle = x => y => color_off => color_on => msg_off => msg_on => lout => sout => state => {
-    lout(setColor(x, y, color_off));
-    state[x][y] = {
-      status: {
-        toggled: false
-      },
-      onNoteOn: (v, cell) => {
-        cell.toggled = !cell.toggled;
-
-        if (cell.toggled) {
-          sout(set$2(channel)(1)(msg_on));
-          lout(setColor(x, y, color_on));
-        } else {
-          sout(set$2(channel)(1)(msg_off));
-          lout(setColor(x, y, color_off));
-        }
-      }
-    };
-    return state;
-  };
   const createLambdaToggle = x => y => color_off => color_on => lambda_on => lambda_off => lout => state => {
     lout(setColor(x, y, color_off));
     state[x][y] = {
       status: {
         toggled: false
       },
-      onNoteOn: (v, cell) => {
-        cell.toggled = !cell.toggled;
+      onNoteOn: (v, status) => {
+        status.toggled = !status.toggled;
 
-        if (cell.toggled) {
+        if (status.toggled) {
           lambda_on();
           lout(setColor(x, y, color_on));
         } else {
@@ -7792,6 +7772,7 @@
     };
     return state;
   };
+  const createToggle = x => y => color_off => color_on => msg_off => msg_on => lout => sout => state => createLambdaToggle(x)(y)(color_off)(color_on)(() => sout(set$2(channel)(1)(msg_on)))(() => sout(set$2(channel)(1)(msg_off)))(lout)(state);
   const createCC14bit = x => y => color => ch => cc => lout => sout => state => {
     lout(setColor(x, y, color));
     state[x][y] = {

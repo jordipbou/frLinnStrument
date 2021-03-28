@@ -3,7 +3,7 @@ import * as R from 'ramda'
 import * as X from 'rxjs'
 import * as O from 'rxjs/operators'
 
-export const version = '1.0.1'
+export const version = '1.0.2'
 
 export const AS_SETTINGS = 0
 export const RED = 1
