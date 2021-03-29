@@ -7736,7 +7736,7 @@ var FilterSubscriber = /*@__PURE__*/ (function (_super) {
     return FilterSubscriber;
 }(Subscriber$1));
 
-const version = '1.0.3';
+const version = '1.0.4';
 const AS_SETTINGS = 0;
 const RED = 1;
 const YELLOW = 2;
@@ -7751,32 +7751,31 @@ const LIME = 10;
 const PINK = 11; // -------------------------------------  Setting color of cells
 // It's not needed to set user firmware mode to change colors.
 
-const setColor = (x, y, c) => from$1([cc(20, x), cc(21, y), cc(22, c)]);
+const setColor = curry$1((x, y, c) => from$1([cc(20, x), cc(21, y), cc(22, c)]));
 const clear = (c = 7) => from(flatten$1(map$2(x => map$2(y => setColor(x, y, c))(range$1(0, 8)))(range$1(0, 17))));
 const restore = () => clear(AS_SETTINGS); // ------------------------------------------- User firmware mode
 
-const userFirmwareMode = (enable = true) => nrpn(245, enable ? 1 : 0);
-const rowSlide = curry$1((row, enable = true) => cc(9, enable ? 1 : 0, row));
-const xData = curry$1((row, enable = true) => cc(10, enable ? 1 : 0, row));
-const yData = curry$1((row, enable = true) => cc(11, enable ? 1 : 0, row));
-const zData = curry$1((row, enable = true) => cc(12, enable ? 1 : 0, row));
+const userFirmwareMode = enable => nrpn(245, enable ? 1 : 0);
+const rowSlide = curry$1((row, enable) => cc(9, enable ? 1 : 0, row));
+const xData = curry$1((row, enable) => cc(10, enable ? 1 : 0, row));
+const yData = curry$1((row, enable) => cc(11, enable ? 1 : 0, row));
+const zData = curry$1((row, enable) => cc(12, enable ? 1 : 0, row));
 const decimationRate = (rate = 12) => cc(13, rate); // Each cell of state expects an object with:
 // onNoteOn
 // onNoteOff
 // onPitchBend
 // onTimbre
 // onPressure
-// active
-// channel
+// status
 
 const createState = () => map$2(x => map$2(y => ({}))(range$1(0, 8)))(range$1(0, 17));
-const listener = state => input => {
+const listener = curry$1((state, input) => {
   input.pipe(filter$1(isNoteOn)).subscribe(v => {
-    let x = view$1(note)(v) % 16 + 1;
-    let y = view$1(note)(v) >> 4;
+    let x = view$1(note)(v);
+    let y = view$1(channel)(v);
     if (state[x][y].onNoteOn !== undefined) state[x][y].onNoteOn(v, state[x][y].status);
     if (state[x][y].onPitchBend !== undefined) state[x][y].unsubscriberPitchBend = input.pipe(filter$1(both$1(isPitchBend, isOnChannel(view$1(channel)(v))))).subscribe(v => state[x][y].onPitchBend(v, state[x][y].status));
-    if (state[x][y].onTimbreChange !== undefined) state[x][y].unsubscriberTimbreChange = input.pipe(filter$1(both$1(isTimbreChange, isOnChannel(view$1(channel)(v))))).subscribe(state[x][y].onTimbreChange);
+    if (state[x][y].onTimbreChange !== undefined) state[x][y].unsubscriberTimbreChange = input.pipe(filter$1(both$1(isTimbreChange, isOnChannel(view$1(channel)(v))))).subscribe(v => state[x][y].onTimbreChange(v, state[x][y].status));
     if (state[x][y].onPressure !== undefined) state[x][y].unsubscriberPressure = input.pipe(filter$1(both$1(isPolyPressure)(isOnChannel(view$1(channel)(v))))).subscribe(v => state[x][y].onPressure(v, state[x][y].status)); // Note off and cleaning
 
     state[x][y].unsubscriberNoteOff = input.pipe(filter$1(both$1(isNoteOff$1)(isOnChannel(view$1(channel)(v))))).subscribe(v => {
@@ -7803,8 +7802,8 @@ const listener = state => input => {
       }
     });
   });
-};
-const createLambdaToggle = x => y => color_off => color_on => lambda_on => lambda_off => lout => state => {
+});
+const createLambdaToggle = curry$1((x, y, color_off, color_on, lambda_on, lambda_off, lout, state) => {
   lout(setColor(x, y, color_off));
   state[x][y] = {
     status: {
@@ -7823,9 +7822,9 @@ const createLambdaToggle = x => y => color_off => color_on => lambda_on => lambd
     }
   };
   return state;
-};
-const createToggle = x => y => color_off => color_on => msg_off => msg_on => lout => sout => state => createLambdaToggle(x)(y)(color_off)(color_on)(() => sout(set$2(channel)(1)(msg_on)))(() => sout(set$2(channel)(1)(msg_off)))(lout)(state);
-const createCC14bit = x => y => color => ch => cc => lout => sout => state => {
+});
+const createToggle = curry$1((x, y, color_off, color_on, msg_off, msg_on, lout, sout, state) => createLambdaToggle(x)(y)(color_off)(color_on)(() => sout(set$2(channel)(1)(msg_on)))(() => sout(set$2(channel)(1)(msg_off)))(lout)(state));
+const createCC14bit = curry$1((x, y, color, ch, cc, lout, sout, state) => {
   lout(setColor(x, y, color));
   state[x][y] = {
     status: {
@@ -7850,6 +7849,6 @@ const createCC14bit = x => y => color => ch => cc => lout => sout => state => {
     }
   };
   return state;
-};
+});
 
 export { AS_SETTINGS, BLUE, CYAN, GREEN, LIME, MAGENTA, OFF, ORANGE, PINK, RED, WHITE, YELLOW, clear, createCC14bit, createLambdaToggle, createState, createToggle, decimationRate, listener, restore, rowSlide, setColor, userFirmwareMode, version, xData, yData, zData };
